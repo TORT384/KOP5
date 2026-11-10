@@ -2,12 +2,13 @@ import React, { useMemo } from 'react';
 import DashboardView from '../components/DashboardView';
 import useFetchCountries from '../hooks/useFetchCountries';
 import useDebounce from '../hooks/useDebounce';
-import { useFilter } from '../context/FilterContext';
+import { useDashboardStore } from '../store/useDashboardStore';
 
 export default function DashboardContainer() {
   const { data: rawCountries, loading, error } = useFetchCountries();
-  const { filters } = useFilter();
-
+  
+  // Селектор фільтрів зі Zustand
+  const filters = useDashboardStore((state) => state.filters);
   const debouncedFilters = useDebounce(filters, 400);
 
   const processedCountries = useMemo(() => {

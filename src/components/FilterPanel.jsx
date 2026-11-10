@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { useFilter } from '../context/FilterContext';
-import { useTheme } from '../context/ThemeContext';
+import { useDashboardStore } from '../store/useDashboardStore';
 
 export default function FilterPanel() {
-  const { filters, setFilters, INITIAL_FILTERS } = useFilter();
-  const { isDark } = useTheme();
+  const theme = useDashboardStore((state) => state.theme);
+  const isDark = theme === 'dark';
+
+  const filters = useDashboardStore((state) => state.filters);
+  const setFilters = useDashboardStore((state) => state.setFilters);
+  const resetFilters = useDashboardStore((state) => state.resetFilters);
 
   const { control, reset, watch } = useForm({
     defaultValues: filters,
@@ -19,8 +22,13 @@ export default function FilterPanel() {
   }, [watch, setFilters]);
 
   const handleReset = () => {
-    reset(INITIAL_FILTERS);
-    setFilters(INITIAL_FILTERS);
+    resetFilters();
+    reset({
+      search: '',
+      minPopulation: 0,
+      sortKey: 'name',
+      sortOrder: 'asc',
+    });
   };
 
   const styles = {
@@ -29,7 +37,7 @@ export default function FilterPanel() {
       flexWrap: 'wrap',
       gap: '16px',
       alignItems: 'center',
-      justify: 'space-between',
+      justifyContent: 'space-between',
       padding: '16px',
       backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
       borderRadius: '8px',

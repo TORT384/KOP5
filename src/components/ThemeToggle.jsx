@@ -1,8 +1,9 @@
 import React from 'react';
-import { useTheme } from '../context/ThemeContext';
+import { useDashboardStore } from '../store/useDashboardStore';
 
 export default function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
+  const theme = useDashboardStore((state) => state.theme);
+  const toggleTheme = useDashboardStore((state) => state.toggleTheme);
 
   return (
     <button 

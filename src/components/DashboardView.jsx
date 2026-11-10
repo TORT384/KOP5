@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import KpiCard from './KpiCard';
 import ThemeToggle from './ThemeToggle';
 import FilterPanel from './FilterPanel';
-import { useTheme } from '../context/ThemeContext';
+import AnalyticsChart from './AnalyticsChart';
+import { useDashboardStore } from '../store/useDashboardStore';
 
 export default function DashboardView({
   isLoading = false,
@@ -11,8 +12,11 @@ export default function DashboardView({
   kpis = [],
   countries = [],
 }) {
-  const { isDark } = useTheme();
-  // Ініціалізуємо хук навігації
+  const theme = useDashboardStore((state) => state.theme);
+  const favorites = useDashboardStore((state) => state.favorites);
+  const toggleFavorite = useDashboardStore((state) => state.toggleFavorite);
+
+  const isDark = theme === 'dark';
   const navigate = useNavigate();
 
   const styles = {
@@ -54,6 +58,12 @@ export default function DashboardView({
       cursor: 'pointer',
       transition: 'background-color 0.15s ease',
     },
+    favBtn: {
+      background: 'none',
+      border: 'none',
+      fontSize: '18px',
+      cursor: 'pointer',
+    },
     statusBox: {
       padding: '32px',
       textAlign: 'center',
@@ -87,22 +97,27 @@ export default function DashboardView({
         )}
       </section>
 
+      {/* Віджет Графіка */}
+      {!isLoading && !error && countries.length > 0 && (
+        <AnalyticsChart countries={countries} />
+      )}
+
       <main>
         {isLoading && (
           <div style={styles.statusBox}>
-            ⏳ Завантаження даних... Зачекайте, будь ласка.
+             Завантаження даних... Зачекайте, будь ласка.
           </div>
         )}
 
         {error && !isLoading && (
           <div style={{ ...styles.statusBox, color: '#ff6b6b' }}>
-            ⚠️ Помилка завантаження: {error}
+             Помилка завантаження: {error}
           </div>
         )}
 
         {!isLoading && !error && countries.length === 0 && (
           <div style={styles.statusBox}>
-            📭 За вказаними критеріями країн не знайдено.
+             За вказаними критеріями країн не знайдено.
           </div>
         )}
 
@@ -110,6 +125,7 @@ export default function DashboardView({
           <table style={styles.table}>
             <thead>
               <tr style={{ backgroundColor: isDark ? '#333' : '#f0f0f0' }}>
+                <th style={styles.thTd}>★</th>
                 <th style={styles.thTd}>Код</th>
                 <th style={styles.thTd}>Країна</th>
                 <th style={styles.thTd}>Столиця</th>
@@ -119,21 +135,35 @@ export default function DashboardView({
               </tr>
             </thead>
             <tbody>
-              {countries.map((country) => (
-                <tr 
-                  key={country.id} 
-                  style={styles.tr}
-                  /* Використання useNavigate для дрілдаун-переходу */
-                  onClick={() => navigate(`/country/${country.id}`)}
-                >
-                  <td style={styles.thTd}><strong>{country.id}</strong></td>
-                  <td style={styles.thTd}>{country.name}</td>
-                  <td style={styles.thTd}>{country.capital}</td>
-                  <td style={styles.thTd}>{country.region}</td>
-                  <td style={styles.thTd}>{(country.population ?? 0).toLocaleString()}</td>
-                  <td style={styles.thTd}>{(country.area ?? 0).toLocaleString()}</td>
-                </tr>
-              ))}
+              {countries.map((country) => {
+                const isFav = favorites.includes(country.id);
+                return (
+                  <tr 
+                    key={country.id} 
+                    style={styles.tr}
+                    onClick={() => navigate(`/country/${country.id}`)}
+                  >
+                    {/* Кнопка Обраного в списку */}
+                    <td 
+                      style={styles.thTd} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(country.id);
+                      }}
+                    >
+                      <button style={styles.favBtn}>
+                        {isFav ? '⭐' : '☆'}
+                      </button>
+                    </td>
+                    <td style={styles.thTd}><strong>{country.id}</strong></td>
+                    <td style={styles.thTd}>{country.name}</td>
+                    <td style={styles.thTd}>{country.capital}</td>
+                    <td style={styles.thTd}>{country.region}</td>
+                    <td style={styles.thTd}>{(country.population ?? 0).toLocaleString()}</td>
+                    <td style={styles.thTd}>{(country.area ?? 0).toLocaleString()}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}

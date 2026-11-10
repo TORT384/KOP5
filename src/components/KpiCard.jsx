@@ -1,8 +1,9 @@
 import React from 'react';
-import { useTheme } from '../context/ThemeContext';
+import { useDashboardStore } from '../store/useDashboardStore';
 
 export default function KpiCard({ title, value }) {
-  const { isDark } = useTheme();
+  const theme = useDashboardStore((state) => state.theme);
+  const isDark = theme === 'dark';
 
   const cardStyle = {
     padding: '16px',
